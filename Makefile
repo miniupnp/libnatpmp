@@ -6,7 +6,8 @@
 
 OS = $(shell uname -s)
 CC = gcc
-INSTALL = install
+INSTALL = install -p
+ARCH = $(shell uname -m | sed -e s/i.86/i686/)
 VERSION = $(shell cat VERSION)
 
 ifeq ($(OS), Darwin)
@@ -60,9 +61,16 @@ HEADERS = natpmp.h
 
 EXECUTABLES = testgetgateway natpmpc-shared natpmpc-static
 
-INSTALLPREFIX ?= $(PREFIX)/usr
+INSTALLPREFIX ?= /usr
 INSTALLDIRINC = $(INSTALLPREFIX)/include
+
+ifeq ($(ARCH),i686)
 INSTALLDIRLIB = $(INSTALLPREFIX)/lib
+else
+ifeq ($(ARCH),x86_64)
+INSTALLDIRLIB = $(INSTALLPREFIX)/lib64
+endif
+
 INSTALLDIRBIN = $(INSTALLPREFIX)/bin
 
 JAVA ?= java
@@ -94,14 +102,14 @@ depend:
 	makedepend -f$(MAKEFILE_LIST) -Y $(OBJS:.o=.c) 2>/dev/null
 
 install:	$(HEADERS) $(STATICLIB) $(SHAREDLIB) natpmpc-shared
-	$(INSTALL) -d $(INSTALLDIRINC)
-	$(INSTALL) -m 644 $(HEADERS) $(INSTALLDIRINC)
-	$(INSTALL) -d $(INSTALLDIRLIB)
-	$(INSTALL) -m 644 $(STATICLIB) $(INSTALLDIRLIB)
-	$(INSTALL) -m 644 $(SHAREDLIB) $(INSTALLDIRLIB)/$(SONAME)
-	$(INSTALL) -d $(INSTALLDIRBIN)
-	$(INSTALL) -m 755 natpmpc-shared $(INSTALLDIRBIN)/natpmpc
-	ln -s -f $(SONAME) $(INSTALLDIRLIB)/$(SHAREDLIB)
+	$(INSTALL) -d $(DESTDIR)$(INSTALLDIRINC)
+	$(INSTALL) -m 644 $(HEADERS) $(DESTDIR)$(INSTALLDIRINC)
+	$(INSTALL) -d $(DESTDIR)$(INSTALLDIRLIB)
+	$(INSTALL) -m 644 $(STATICLIB) $(DESTDIR)$(INSTALLDIRLIB)
+	$(INSTALL) -m 644 $(SHAREDLIB) $(DESTDIR)$(INSTALLDIRLIB)/$(SONAME)
+	$(INSTALL) -d $(DESTDIR)$(INSTALLDIRBIN)
+	$(INSTALL) -m 755 natpmpc-shared $(DESTDIR)$(INSTALLDIRBIN)/natpmpc
+	ln -s -f $(SONAME) $(DESTDIR)$(INSTALLDIRLIB)/$(SHAREDLIB)
 
 $(JNIHEADERS): fr/free/miniupnp/libnatpmp/NatPmp.class
 	javah -jni fr.free.miniupnp.libnatpmp.NatPmp
