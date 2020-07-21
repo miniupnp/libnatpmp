@@ -59,6 +59,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #undef USE_PROC_NET_ROUTE
 #undef USE_SOCKET_ROUTE
 #define USE_SYSCTL_NET_ROUTE
+#include <TargetConditionals.h>
 #endif
 
 #if (defined(sun) && defined(__SVR4))
@@ -98,7 +99,15 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <sys/sysctl.h>
 #include <sys/socket.h>
+#ifndef __APPLE__
 #include <net/route.h>
+#else
+#if TARGET_OS_OSX
+#include <net/route.h>
+#else
+#include "route.h"
+#endif
+#endif
 #endif
 #ifdef USE_SOCKET_ROUTE
 #include <unistd.h>
