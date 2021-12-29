@@ -207,7 +207,11 @@ NATPMP_LIBSPEC int readnatpmpresponse(natpmp_t * p, natpmpresp_t * response)
 	unsigned char buf[16];
 	struct sockaddr_in addr;
 	socklen_t addrlen = sizeof(addr);
-	int64_t n;
+#ifdef _WIN32
+        int n;
+#else
+	ssize_t n;
+#endif
 	if(!p)
 		return NATPMP_ERR_INVALIDARGS;
 	n = recvfrom(p->s, buf, sizeof(buf), 0,
