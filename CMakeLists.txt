@@ -64,6 +64,9 @@ install(TARGETS natpmp natpmpc
 install(FILES natpmp.h
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+ install(FILES natpmp_declspec.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/natpmp.pc
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
