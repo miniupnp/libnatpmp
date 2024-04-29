@@ -215,8 +215,7 @@ static PyMethodDef NATPMP_methods[] = {
 };
 
 static PyTypeObject NATPMPType = {
-  PyObject_HEAD_INIT(NULL)
-  0,					/*ob_size*/
+  PyVarObject_HEAD_INIT(&PyType_Type, 0)
   "libnatpmp.NATPMP",			/*tp_name*/
   sizeof(NATPMPObject),			/*tp_basicsize*/
   0,					/*tp_itemsize*/
@@ -261,21 +260,35 @@ static PyMethodDef libnatpmp_methods[] = {
     {NULL}  /* Sentinel */
 };
 
+static PyModuleDef libnatpmp_module =
+{
+    PyModuleDef_HEAD_INIT,
+    "libnatpmp",
+    "libnatpmp module.",
+    -1,
+    libnatpmp_methods
+};
+
 #ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
 #define PyMODINIT_FUNC void
 #endif
 PyMODINIT_FUNC
-initlibnatpmp(void)
+PyInit_libnatpmp(void)
 {
   PyObject* m;
 
   if (PyType_Ready(&NATPMPType) < 0)
-    return;
+    return NULL;
 
-  m = Py_InitModule3("libnatpmp", libnatpmp_methods,
-		     "libnatpmp module.");
+  m = PyModule_Create(&libnatpmp_module);
+  if (m == NULL)
+    return NULL;
 
-  Py_INCREF(&NATPMPType);
-  PyModule_AddObject(m, "NATPMP", (PyObject *)&NATPMPType);
+  if (PyModule_AddObjectRef(m, "NATPMP", (PyObject *)&NATPMPType) < 0) {
+    Py_DECREF(m);
+    return NULL;
+  }
+
+  return m;
 }
 
