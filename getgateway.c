@@ -57,8 +57,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef __APPLE__
 #undef USE_PROC_NET_ROUTE
-#undef USE_SOCKET_ROUTE
-#define USE_SYSCTL_NET_ROUTE
+#define USE_SOCKET_ROUTE
+#undef USE_SYSCTL_NET_ROUTE
 #endif
 
 #if (defined(sun) && defined(__SVR4))
@@ -106,6 +106,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <sys/socket.h>
 #include <net/if.h>
 #include <net/route.h>
+#include <arpa/inet.h>
 #endif
 
 #ifdef USE_WIN32_CODE
@@ -259,8 +260,14 @@ int getdefaultgateway(in_addr_t *addr)
   seq = 0;
   rtm_addrs = RTA_DST | RTA_NETMASK;
 
-  memset(&so_dst, 0, sizeof(so_dst));
-  memset(&so_mask, 0, sizeof(so_mask));
+  /*
+   * Using a reserved "this" network destination for the lookup of the
+   * the default route (see RFC 1122 section 3.2.1.3) to resolve the
+   * default route longest match prefix resolution correctly also VPNs
+   * such a openvpn which installs a /1 route.
+   */
+  inet_pton(AF_INET, "0.0.0.1", &so_dst);
+  inet_pton(AF_INET, "255.255.255.255", &so_mask);
   memset(&rtm, 0, sizeof(struct rt_msghdr));
 
   rtm.rtm_type = RTM_GET;
