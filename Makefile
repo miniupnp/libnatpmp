@@ -28,10 +28,9 @@ APIVERSION = 1
 #LDFLAGS = -Wl,--no-undefined
 CFLAGS ?= -Os
 #CFLAGS = -g -O0
-CFLAGS += -fPIC
-CFLAGS += -Wall
-CFLAGS += -Wextra
-CFLAGS += -DENABLE_STRNATPMPERR
+override CFLAGS += -Wall
+override CFLAGS += -Wextra
+override CFLAGS += -fPIC -DENABLE_STRNATPMPERR
 
 LIBOBJS = natpmp.o getgateway.o
 
