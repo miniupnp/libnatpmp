@@ -73,12 +73,14 @@ NATPMP_LIBSPEC int initnatpmp(natpmp_t * p, int forcegw, in_addr_t forcedgw)
 		return NATPMP_ERR_INVALIDARGS;
 	memset(p, 0, sizeof(natpmp_t));
 	p->s = socket(PF_INET, SOCK_DGRAM, 0);
-	if(p->s < 0)
-		return NATPMP_ERR_SOCKETERROR;
 #ifdef _WIN32
+	if(p->s == INVALID_SOCKET)
+		return NATPMP_ERR_SOCKETERROR;
 	if(ioctlsocket(p->s, FIONBIO, &ioctlArg) == SOCKET_ERROR)
 		return NATPMP_ERR_FCNTLERROR;
 #else
+	if(p->s < 0)
+		return NATPMP_ERR_SOCKETERROR;
 	if((flags = fcntl(p->s, F_GETFL, 0)) < 0)
 		return NATPMP_ERR_FCNTLERROR;
 	if(fcntl(p->s, F_SETFL, flags | O_NONBLOCK) < 0)

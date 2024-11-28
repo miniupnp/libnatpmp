@@ -59,7 +59,11 @@ typedef unsigned short uint16_t;
 #endif
 
 typedef struct {
-	int s;	/* socket */
+#ifdef _WIN32
+	SOCKET s; /* socket */
+#else
+	int s; /* socket */
+#endif
 	in_addr_t gateway;	/* default gateway (IPv4) */
 	int has_pending_request;
 	unsigned char pending_request[12];
