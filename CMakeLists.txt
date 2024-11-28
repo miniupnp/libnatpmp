@@ -30,8 +30,10 @@ if (WIN32)
 	target_link_libraries(natpmp PUBLIC ws2_32 iphlpapi)
 	if (BUILD_SHARED_LIBS)
 		target_compile_definitions(natpmp PUBLIC -DNATPMP_EXPORTS)
+		set(EXTRA_PKGCONFIG_CFLAGS "")
 	else() # win static lib
 		target_compile_definitions(natpmp PUBLIC -DNATPMP_STATICLIB)
+		set(EXTRA_PKGCONFIG_CFLAGS "-DNATPMP_STATICLIB")
 	endif (BUILD_SHARED_LIBS)
 endif (WIN32)
 
