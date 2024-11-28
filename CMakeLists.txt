@@ -23,7 +23,7 @@ option(BUILD_EXECUTABLES "Build executables" ON)
 
 # Library itself
 add_library(natpmp ${NATPMP_SOURCES})
-target_include_directories(natpmp PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(natpmp PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}> $<INSTALL_INTERFACE:include>)
 target_compile_definitions(natpmp PRIVATE -DENABLE_STRNATPMPERR)
 
 if (WIN32)
@@ -56,12 +56,15 @@ configure_file(natpmp.pc.in natpmp.pc @ONLY)
 
 # install
 install(TARGETS natpmp
+        EXPORT libnatpmp-targets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(BUILD_EXECUTABLES)
-        install(TARGETS natpmpc DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install(TARGETS natpmpc
+                EXPORT libnatpmp-targets
+                DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 install(FILES natpmp.h natpmp_declspec.h
@@ -70,3 +73,19 @@ install(FILES natpmp.h natpmp_declspec.h
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/natpmp.pc
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/libnatpmp-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/libnatpmp-config.cmake"
+  INSTALL_DESTINATION "share/libnatpmp"
+)
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/libnatpmp-config.cmake"
+  DESTINATION "share/libnatpmp"
+)
+
+install(
+    EXPORT libnatpmp-targets
+    DESTINATION share/libnatpmp
+    NAMESPACE libnatpmp::
+)
