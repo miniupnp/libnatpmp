@@ -7,4 +7,4 @@ Name: libnatpmp
 Description: NAT-PMP client library
 Version: @PROJECT_VERSION@
 Libs: -L${libdir} -lnatpmp
-Cflags: -I${includedir}
+Cflags: -I${includedir} @EXTRA_PKGCONFIG_CFLAGS@

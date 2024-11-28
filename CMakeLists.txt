@@ -19,18 +19,21 @@ if (WIN32)
 endif (WIN32)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+option(BUILD_EXECUTABLES "Build executables" ON)
 
 # Library itself
 add_library(natpmp ${NATPMP_SOURCES})
-target_include_directories(natpmp PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(natpmp PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}> $<INSTALL_INTERFACE:include>)
 target_compile_definitions(natpmp PRIVATE -DENABLE_STRNATPMPERR)
 
 if (WIN32)
 	target_link_libraries(natpmp PUBLIC ws2_32 iphlpapi)
 	if (BUILD_SHARED_LIBS)
 		target_compile_definitions(natpmp PUBLIC -DNATPMP_EXPORTS)
+		set(EXTRA_PKGCONFIG_CFLAGS "")
 	else() # win static lib
 		target_compile_definitions(natpmp PUBLIC -DNATPMP_STATICLIB)
+		set(EXTRA_PKGCONFIG_CFLAGS "-DNATPMP_STATICLIB")
 	endif (BUILD_SHARED_LIBS)
 endif (WIN32)
 
@@ -38,28 +41,53 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Haiku")
 	target_link_libraries(natpmp PUBLIC network)
 endif ()
 
-# Executables
-add_executable(natpmpc natpmpc.c)
-target_link_libraries(natpmpc natpmp)
+if(BUILD_EXECUTABLES)
+	# Executables
+	add_executable(natpmpc natpmpc.c)
+	target_link_libraries(natpmpc natpmp)
 
-add_executable(testgetgateway
-	testgetgateway.c
-	getgateway.c)
-target_link_libraries(testgetgateway natpmp)
+	add_executable(testgetgateway
+		testgetgateway.c
+		getgateway.c)
+	target_link_libraries(testgetgateway natpmp)
+endif()
 
 # natpmp.pc
 include(GNUInstallDirs)
 configure_file(natpmp.pc.in natpmp.pc @ONLY)
 
 # install
-install(TARGETS natpmp natpmpc
+install(TARGETS natpmp
+        EXPORT libnatpmp-targets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-install(FILES natpmp.h
+if(BUILD_EXECUTABLES)
+        install(TARGETS natpmpc
+                EXPORT libnatpmp-targets
+                DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
+
+install(FILES natpmp.h natpmp_declspec.h
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/natpmp.pc
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/libnatpmp-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/libnatpmp-config.cmake"
+  INSTALL_DESTINATION "share/libnatpmp"
+)
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/libnatpmp-config.cmake"
+  DESTINATION "share/libnatpmp"
+)
+
+install(
+    EXPORT libnatpmp-targets
+    DESTINATION share/libnatpmp
+    NAMESPACE libnatpmp::
+)
