@@ -19,6 +19,7 @@ if (WIN32)
 endif (WIN32)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+option(BUILD_EXECUTABLES "Build executables" ON)
 
 # Library itself
 add_library(natpmp ${NATPMP_SOURCES})
@@ -38,24 +39,30 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Haiku")
 	target_link_libraries(natpmp PUBLIC network)
 endif ()
 
-# Executables
-add_executable(natpmpc natpmpc.c)
-target_link_libraries(natpmpc natpmp)
+if(BUILD_EXECUTABLES)
+	# Executables
+	add_executable(natpmpc natpmpc.c)
+	target_link_libraries(natpmpc natpmp)
 
-add_executable(testgetgateway
-	testgetgateway.c
-	getgateway.c)
-target_link_libraries(testgetgateway natpmp)
+	add_executable(testgetgateway
+		testgetgateway.c
+		getgateway.c)
+	target_link_libraries(testgetgateway natpmp)
+endif()
 
 # natpmp.pc
 include(GNUInstallDirs)
 configure_file(natpmp.pc.in natpmp.pc @ONLY)
 
 # install
-install(TARGETS natpmp natpmpc
+install(TARGETS natpmp
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+if(BUILD_EXECUTABLES)
+        install(TARGETS natpmpc DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
 
 install(FILES natpmp.h natpmp_declspec.h
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
